@@ -2,7 +2,7 @@
 
 ## Setup
 
-Install python 3.7 tensorflow 1.15 cudnn 7.6.5
+Install python 3.7 tensorflow 1.15 cudnn 7.6.5 numpy 1.19
 
 Then
 ```bash
