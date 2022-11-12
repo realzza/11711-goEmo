@@ -1,0 +1,11 @@
+wandb
+numpy
+pandas
+matplotlib
+tqdm
+datasets
+sklearn
+torch
+torchaudio
+torchvision
+transformers
