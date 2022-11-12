@@ -46,9 +46,9 @@ import collections
 import json
 import os
 
-from goemotions.bert import modeling
-from goemotions.bert import optimization
-from goemotions.bert import tokenization
+from bert import modeling
+from bert import optimization
+from bert import tokenization
 import numpy as np
 import pandas as pd
 import tensorflow as tf
