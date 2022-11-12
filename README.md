@@ -25,170 +25,135 @@ cd ..
 # Baseline Results
 
 ```bash
-model_dir=goemotions/bert/cased_L-12_H-768_A-12/
-python goemotions/bert_classifier.py \
-    --multilabel true \
-    --bert_config_file $model_dir/bert_config.json \
-    --vocab_file $model_dir/vocab.txt \
-    --output_dir exp
+cd goemotions
+python calculate_metrics.py --test_data data/test.tsv --predictions ../exp/test.tsv.predictions.tsv
 ```
 
-    F1_at_threshold_0.00 = 0.07996891
-    F1_at_threshold_0.10 = 0.46654633
-    F1_at_threshold_0.20 = 0.53667164
-    F1_at_threshold_0.30 = 0.5466584
-    F1_at_threshold_0.40 = 0.5287117
-    F1_at_threshold_0.50 = 0.4981706
-    F1_at_threshold_0.60 = 0.44387728
-    F1_at_threshold_0.70 = 0.38723078
-    F1_at_threshold_0.80 = 0.29982966
-    F1_at_threshold_0.90 = 0.1547105
-    F1_at_threshold_0.95 = 0.06891227
-    F1_at_threshold_0.99 = 0.0
-    accuracy = 0.83669496
-    accuracy_weighted = 0.8488815
-    admiration_accuracy = 0.9303483
-    admiration_auc = 0.9076752
-    admiration_precision = 0.6334746
-    admiration_recall = 0.59325397
-    amusement_accuracy = 0.97512436
-    amusement_auc = 0.970537
-    amusement_precision = 0.70347005
-    amusement_recall = 0.844697
-    anger_accuracy = 0.9585406
-    anger_auc = 0.8551353
-    anger_precision = 0.4262295
-    anger_recall = 0.3939394
-    annoyance_accuracy = 0.92905843
-    annoyance_auc = 0.7759436
-    annoyance_precision = 0.32804233
-    annoyance_recall = 0.19375
-    approval_accuracy = 0.9235305
-    approval_auc = 0.75991005
-    approval_precision = 0.3504673
-    approval_recall = 0.21367522
-    auc = 0.83669496
-    auc_weighted = 0.8488815
-    caring_accuracy = 0.96959645
-    caring_auc = 0.81646436
-    caring_precision = 0.2972973
-    caring_recall = 0.16296296
-    confusion_accuracy = 0.96885943
-    confusion_auc = 0.8961113
-    confusion_precision = 0.4047619
-    confusion_recall = 0.22222222
-    curiosity_accuracy = 0.9449051
-    curiosity_auc = 0.9256843
-    curiosity_precision = 0.48021108
-    curiosity_recall = 0.64084506
-    desire_accuracy = 0.98489034
-    desire_auc = 0.7999039
-    desire_precision = 0.51428574
-    desire_recall = 0.21686748
-    disappointment_accuracy = 0.97217613
-    disappointment_auc = 0.74654996
-    disappointment_precision = 0.5
-    disappointment_recall = 0.0066225166
-    disapproval_accuracy = 0.9384559
-    disapproval_auc = 0.80379677
-    disapproval_precision = 0.29192546
-    disapproval_recall = 0.17602997
-    disgust_accuracy = 0.9784411
-    disgust_auc = 0.89236915
-    disgust_precision = 0.5405405
-    disgust_recall = 0.32520324
-    embarrassment_accuracy = 0.99318224
-    embarrassment_auc = 0.8021988
-    embarrassment_precision = 0.0
-    embarrassment_recall = 0.0
-    excitement_accuracy = 0.9810208
-    excitement_auc = 0.8848264
-    excitement_precision = 0.5
-    excitement_recall = 0.2815534
-    fear_accuracy = 0.9887599
-    fear_auc = 0.9123201
-    fear_precision = 0.6976744
-    fear_recall = 0.3846154
-    global_step = 10852
-    gratitude_accuracy = 0.98968124
-    gratitude_auc = 0.9922787
-    gratitude_precision = 0.92774564
-    gratitude_recall = 0.9119318
-    grief_accuracy = 0.9988944
-    grief_auc = 0.7905215
-    grief_precision = 0.0
-    grief_recall = 0.0
-    joy_accuracy = 0.9747558
-    joy_auc = 0.9099727
-    joy_precision = 0.5740741
-    joy_recall = 0.57763976
-    loss = 0.09940964
-    love_accuracy = 0.9789939
-    love_auc = 0.96283907
-    love_precision = 0.7348485
-    love_recall = 0.81512606
-    nervousness_accuracy = 0.99576193
-    nervousness_auc = 0.7427791
-    nervousness_precision = 0.0
-    nervousness_recall = 0.0
-    neutral_accuracy = 0.7296849
-    neutral_auc = 0.8117753
-    neutral_precision = 0.56855184
-    neutral_recall = 0.74258536
-    optimism_accuracy = 0.97236043
-    optimism_auc = 0.87280244
-    optimism_precision = 0.62857145
-    optimism_recall = 0.47311828
-    per_example_eval_loss = 0.0995096
-    precision_at_threshold_0.00 = 0.041650213
-    precision_at_threshold_0.10 = 0.34492928
-    precision_at_threshold_0.20 = 0.4777997
-    precision_at_threshold_0.30 = 0.5688418
-    precision_at_threshold_0.40 = 0.63608086
-    precision_at_threshold_0.50 = 0.6950495
-    precision_at_threshold_0.60 = 0.7327273
-    precision_at_threshold_0.70 = 0.7771429
-    precision_at_threshold_0.80 = 0.8079057
-    precision_at_threshold_0.90 = 0.8933333
-    precision_at_threshold_0.95 = 0.9826087
-    precision_at_threshold_0.99 = 0.0
-    pride_accuracy = 0.9970518
-    pride_auc = 0.689273
-    pride_precision = 0.0
-    pride_recall = 0.0
-    realization_accuracy = 0.97328174
-    realization_auc = 0.673867
-    realization_precision = 0.0
-    realization_recall = 0.0
-    recall_at_threshold_0.00 = 1.0
-    recall_at_threshold_0.10 = 0.720651
-    recall_at_threshold_0.20 = 0.61210304
-    recall_at_threshold_0.30 = 0.52614945
-    recall_at_threshold_0.40 = 0.45236215
-    recall_at_threshold_0.50 = 0.38821298
-    recall_at_threshold_0.60 = 0.31837574
-    recall_at_threshold_0.70 = 0.25786063
-    recall_at_threshold_0.80 = 0.18407331
-    recall_at_threshold_0.90 = 0.08468953
-    recall_at_threshold_0.95 = 0.035708643
-    recall_at_threshold_0.99 = 0.0
-    relief_accuracy = 0.9979731
-    relief_auc = 0.70399994
-    relief_precision = 0.0
-    relief_recall = 0.0
-    remorse_accuracy = 0.9918924
-    remorse_auc = 0.9717813
-    remorse_precision = 0.575
-    remorse_recall = 0.8214286
-    sadness_accuracy = 0.9729132
-    sadness_auc = 0.8595727
-    sadness_precision = 0.5365854
-    sadness_recall = 0.42307693
-    sentiment_accuracy = 0.8363079
-    sentiment_f1 = 0.68370897
-    sentiment_precision = 0.76772606
-    sentiment_recall = 0.6162751
-    surprise_accuracy = 0.97217613
-    surprise_auc = 0.8796486
-    surprise_precision = 0.45833334
-    surprise_recall = 0.39007092
+Threshold = 0.3
+
+```json
+{
+  "accuracy": 0.41533075363921135,
+  "macro_precision": 0.416860369666073,
+  "macro_recall": 0.35040055141550974,
+  "macro_f1": 0.3631723079864065,
+  "micro_precision": 0.5688418175606423,
+  "micro_recall": 0.5261494706904725,
+  "micro_f1": 0.5466633834031027,
+  "weighted_precision": 0.526415219464872,
+  "weighted_recall": 0.5261494706904725,
+  "weighted_f1": 0.509780376274107,
+  "admiration_accuracy": 0.9303482587064676,
+  "admiration_precision": 0.6334745762711864,
+  "admiration_recall": 0.5932539682539683,
+  "admiration_f1": 0.6127049180327868,
+  "amusement_accuracy": 0.9751243781094527,
+  "amusement_precision": 0.7034700315457413,
+  "amusement_recall": 0.8446969696969697,
+  "amusement_f1": 0.7676419965576592,
+  "anger_accuracy": 0.9585406301824212,
+  "anger_precision": 0.4262295081967213,
+  "anger_recall": 0.3939393939393939,
+  "anger_f1": 0.40944881889763785,
+  "annoyance_accuracy": 0.9290584116454763,
+  "annoyance_precision": 0.328042328042328,
+  "annoyance_recall": 0.19375,
+  "annoyance_f1": 0.24361493123772102,
+  "approval_accuracy": 0.9235304956697992,
+  "approval_precision": 0.35046728971962615,
+  "approval_recall": 0.21367521367521367,
+  "approval_f1": 0.2654867256637168,
+  "caring_accuracy": 0.9695964621337756,
+  "caring_precision": 0.2972972972972973,
+  "caring_recall": 0.16296296296296298,
+  "caring_f1": 0.2105263157894737,
+  "confusion_accuracy": 0.968859406670352,
+  "confusion_precision": 0.40476190476190477,
+  "confusion_recall": 0.2222222222222222,
+  "confusion_f1": 0.2869198312236287,
+  "curiosity_accuracy": 0.9449051041090842,
+  "curiosity_precision": 0.48021108179419525,
+  "curiosity_recall": 0.6408450704225352,
+  "curiosity_f1": 0.5490196078431372,
+  "desire_accuracy": 0.9848903629998157,
+  "desire_precision": 0.5142857142857142,
+  "desire_recall": 0.21686746987951808,
+  "desire_f1": 0.3050847457627119,
+  "disappointment_accuracy": 0.9721761562557583,
+  "disappointment_precision": 0.5,
+  "disappointment_recall": 0.006622516556291391,
+  "disappointment_f1": 0.0130718954248366,
+  "disapproval_accuracy": 0.9384558688041275,
+  "disapproval_precision": 0.2919254658385093,
+  "disapproval_recall": 0.1760299625468165,
+  "disapproval_f1": 0.2196261682242991,
+  "disgust_accuracy": 0.978441127694859,
+  "disgust_precision": 0.5405405405405406,
+  "disgust_recall": 0.3252032520325203,
+  "disgust_f1": 0.40609137055837563,
+  "embarrassment_accuracy": 0.9931822369633315,
+  "embarrassment_precision": 0.0,
+  "embarrassment_recall": 0.0,
+  "embarrassment_f1": 0.0,
+  "excitement_accuracy": 0.9810208218168417,
+  "excitement_precision": 0.5,
+  "excitement_recall": 0.2815533980582524,
+  "excitement_f1": 0.36024844720496896,
+  "fear_accuracy": 0.9887599041827898,
+  "fear_precision": 0.6976744186046512,
+  "fear_recall": 0.38461538461538464,
+  "fear_f1": 0.49586776859504134,
+  "gratitude_accuracy": 0.9896812235120693,
+  "gratitude_precision": 0.9277456647398844,
+  "gratitude_recall": 0.9119318181818182,
+  "gratitude_f1": 0.9197707736389685,
+  "grief_accuracy": 0.9988944168048646,
+  "grief_precision": 0.0,
+  "grief_recall": 0.0,
+  "grief_f1": 0.0,
+  "joy_accuracy": 0.9747558503777409,
+  "joy_precision": 0.5740740740740741,
+  "joy_recall": 0.577639751552795,
+  "joy_f1": 0.5758513931888545,
+  "love_accuracy": 0.9789939192924267,
+  "love_precision": 0.7348484848484849,
+  "love_recall": 0.8151260504201681,
+  "love_f1": 0.7729083665338646,
+  "nervousness_accuracy": 0.9957619310853142,
+  "nervousness_precision": 0.0,
+  "nervousness_recall": 0.0,
+  "nervousness_f1": 0.0,
+  "optimism_accuracy": 0.9723604201216142,
+  "optimism_precision": 0.6285714285714286,
+  "optimism_recall": 0.4731182795698925,
+  "optimism_f1": 0.5398773006134969,
+  "pride_accuracy": 0.9970517781463055,
+  "pride_precision": 0.0,
+  "pride_recall": 0.0,
+  "pride_f1": 0.0,
+  "realization_accuracy": 0.9732817394508937,
+  "realization_precision": 0.0,
+  "realization_recall": 0.0,
+  "realization_f1": 0.0,
+  "relief_accuracy": 0.997973097475585,
+  "relief_precision": 0.0,
+  "relief_recall": 0.0,
+  "relief_f1": 0.0,
+  "remorse_accuracy": 0.9918923899023402,
+  "remorse_precision": 0.575,
+  "remorse_recall": 0.8214285714285714,
+  "remorse_f1": 0.676470588235294,
+  "sadness_accuracy": 0.9729132117191819,
+  "sadness_precision": 0.5365853658536586,
+  "sadness_recall": 0.4230769230769231,
+  "sadness_f1": 0.4731182795698925,
+  "surprise_accuracy": 0.9721761562557583,
+  "surprise_precision": 0.4583333333333333,
+  "surprise_recall": 0.3900709219858156,
+  "surprise_f1": 0.421455938697318,
+  "neutral_accuracy": 0.7296849087893864,
+  "neutral_precision": 0.5685518423307626,
+  "neutral_recall": 0.7425853385562395,
+  "neutral_f1": 0.6440184421256976
+}
+```
