@@ -1,3 +1,4 @@
 .ipynb_checkpoints
-bert/cased_L-12_H-768_A-12/
-data/full_dataset/
+cased_L-12_H-768_A-12/
+full_dataset/
+exp/
