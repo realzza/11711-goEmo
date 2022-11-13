@@ -26,23 +26,34 @@ def main():
             emotion2group[e] = group
 
     emo_confusion = {}
+    emo_total = {}
+    emo_error_count = {}
+    exclude = {'disgust', 'neutral', ''}
     with open(args.input, encoding='utf-8') as f:
         samples = list(f)[1:]
         for line in samples:
             sentence, labels, preds = line.rstrip('\n').split('\t')
             labels = labels.split(',')
             preds = preds.split(',')
-            lab_groups = list(set([
-                emotion2group[lab]
-                for lab in labels if lab != 'disgust' and lab != 'neutral'  # skip them since it has no peers
+            pred_groups = list(set([
+                emotion2group[p]
+                for p in preds if p not in exclude  # skip them since it has no peers
             ]))
 
-            for p in preds:
-                if p not in ['', 'neutral', 'disgust'] and p not in labels and emotion2group[p] in lab_groups:
-                    emo_confusion.setdefault(p, 0)
-                    emo_confusion[p] += 1
+            for lab in labels:
+                emo_total.setdefault(lab, 0)
+                emo_total[lab] += 1
+                if lab in exclude:
+                    continue
+                if lab not in preds:
+                    emo_error_count.setdefault(lab, 0)
+                    emo_error_count[lab] += 1
+                    if emotion2group[lab] in pred_groups:
+                        emo_confusion.setdefault(lab, 0)
+                        emo_confusion[lab] += 1
 
-    print({k: v / len(samples) for k, v in emo_confusion.items()})
+    print('Num confusion / total count:', {k: v / emo_total[k] for k, v in emo_confusion.items()})
+    print('Num confusion / total errors:', {k: v / emo_error_count[k] for k, v in emo_confusion.items()})
 
 
 if __name__ == '__main__':
