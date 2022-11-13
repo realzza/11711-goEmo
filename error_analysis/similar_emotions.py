@@ -31,13 +31,13 @@ def main():
     exclude = {'disgust', 'neutral', ''}
     with open(args.input, encoding='utf-8') as f:
         samples = list(f)[1:]
-        for line in samples:
+        for i, line in enumerate(samples):
             sentence, labels, preds = line.rstrip('\n').split('\t')
             labels = labels.split(',')
             preds = preds.split(',')
             pred_groups = list(set([
                 emotion2group[p]
-                for p in preds if p not in exclude  # skip them since it has no peers
+                for p in preds if p not in labels and p not in exclude  # skip them since it has no peers
             ]))
 
             for lab in labels:
@@ -51,6 +51,7 @@ def main():
                     if emotion2group[lab] in pred_groups:
                         emo_confusion.setdefault(lab, 0)
                         emo_confusion[lab] += 1
+                        print(i)
 
     print('Num confusion / total count:', {k: v / emo_total[k] for k, v in emo_confusion.items()})
     print('Num confusion / total errors:', {k: v / emo_error_count[k] for k, v in emo_confusion.items()})
