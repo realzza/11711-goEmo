@@ -22,7 +22,7 @@ cd ..
 ./train.sh
 ```
 
-# Baseline Results
+## Baseline Results
 
 ```bash
 cd goemotions
@@ -155,5 +155,43 @@ Threshold = 0.3
   "neutral_precision": 0.5685518423307626,
   "neutral_recall": 0.7425853385562395,
   "neutral_f1": 0.6440184421256976
+}
+```
+
+## Baseline results ordered by f1 score
+
+```json
+{
+  "embarrassment_f1": 0.0, 
+  "grief_f1": 0.0, 
+  "nervousness_f1": 0.0, 
+  "pride_f1": 0.0, 
+  "realization_f1": 0.0, 
+  "relief_f1": 0.0, 
+  "disappointment_f1": 0.0130718954248366, 
+  "caring_f1": 0.2105263157894737, 
+  "disapproval_f1": 0.2196261682242991, 
+  "annoyance_f1": 0.24361493123772102, 
+  "approval_f1": 0.2654867256637168, 
+  "confusion_f1": 0.2869198312236287, 
+  "desire_f1": 0.3050847457627119, 
+  "excitement_f1": 0.36024844720496896, 
+  "macro_f1": 0.3631723079864065, 
+  "disgust_f1": 0.40609137055837563, 
+  "anger_f1": 0.40944881889763785, 
+  "surprise_f1": 0.421455938697318, 
+  "sadness_f1": 0.4731182795698925, 
+  "fear_f1": 0.49586776859504134, 
+  "weighted_f1": 0.509780376274107, 
+  "optimism_f1": 0.5398773006134969, 
+  "micro_f1": 0.5466633834031027, 
+  "curiosity_f1": 0.5490196078431372, 
+  "joy_f1": 0.5758513931888545, 
+  "admiration_f1": 0.6127049180327868, 
+  "neutral_f1": 0.6440184421256976,
+  "remorse_f1": 0.676470588235294, 
+  "amusement_f1": 0.7676419965576592, 
+  "love_f1": 0.7729083665338646, 
+  "gratitude_f1": 0.9197707736389685
 }
 ```
