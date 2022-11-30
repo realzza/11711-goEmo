@@ -1,6 +1,5 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
-*/__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 
@@ -76,8 +75,10 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
-*/.ipynb_checkpoints
+**/.ipynb_checkpoints
+
+# slurm
+jupyterlab_gpu.sh
 
 # IPython
 profile_default/
