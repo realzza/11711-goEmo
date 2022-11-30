@@ -3,3 +3,7 @@
 cased_L-12_H-768_A-12/
 full_dataset/
 exp/
+*/.ipynb_checkpoints
+*/*/.ipynb_checkpoints
+*/__pycache__
+*/*/__pycache__
