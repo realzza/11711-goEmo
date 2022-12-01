@@ -80,14 +80,22 @@ def trainer(config=None):
             train_loss = train_fn(train_data_loader, model, optimizer, device, scheduler)
             eval_loss, preds, labels = eval_fn(valid_data_loader, model, device)
           
-            auc_score = log_metrics(preds, labels)["auc_micro"]
-            print("AUC score: ", auc_score)
+            # import pdb; pdb.set_trace()
+            all_scores = log_metrics(preds, labels)
+            auc_score = all_scores["auc_micro"]
+            all_report = all_scores["all_report"]
+            macro_avg_precision, macro_avg_recall, macro_avg_f1 = map(float, all_report.split('\n')[-4].split()[2:5])
+            print("AUC score: %.4f\nPrecision macro: %.4f\nRecall macro: %.4f\nF1 macro: %.4f"%(auc_score, macro_avg_precision, macro_avg_recall, macro_avg_f1))
+            print(all_report)
             avg_train_loss, avg_val_loss = train_loss / len(train_data_loader), eval_loss / len(valid_data_loader)
             wandb.log({
                 "epoch": epoch + 1,
                 "train_loss": avg_train_loss,
                 "val_loss": avg_val_loss,
                 "auc_score": auc_score,
+                "macro_precision": macro_avg_precision,
+                "macro_recall": macro_avg_recall,
+                "macro_f1": macro_avg_f1,
             })
             print("Average Train loss: ", avg_train_loss)
             print("Average Valid loss: ", avg_val_loss)
@@ -109,7 +117,7 @@ if __name__ == "__main__":
     import wandb
 
     wandb.login()
-    sweep_id = wandb.sweep(sweep_config, project='goemo')
+    sweep_id = wandb.sweep(sweep_config, project='goemo_real')
     n_labels = len(mapping)
     
     train_ohe_labels = one_hot_encoder(train)
@@ -121,10 +129,10 @@ if __name__ == "__main__":
     test = pd.concat([test, test_ohe_labels], axis=1)
     
     sample_train_dataset, _ = build_dataset(40)
-    print(sample_train_dataset[0])
+    # print(sample_train_dataset[0])
     len(sample_train_dataset)
     
     bert_model = transformers.SqueezeBertModel.from_pretrained("squeezebert/squeezebert-uncased")
     
     print(sweep_id)
-    wandb.agent(sweep_id, function=trainer, count=6)
+    wandb.agent(sweep_id, function=trainer, count=1)
