@@ -1,4 +1,5 @@
 import wandb
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,6 +7,36 @@ from torch.optim import AdamW
 from transformers import get_linear_schedule_with_warmup
 from sklearn import metrics, model_selection, preprocessing
 
+mapping = {
+    0:"admiration",
+    1:"amusement",
+    2:"anger",
+    3:"annoyance",
+    4:"approval",
+    5:"caring",
+    6:"confusion",
+    7:"curiosity",
+    8:"desire",
+    9:"disappointment",
+    10:"disapproval",
+    11:"disgust",
+    12:"embarrassment",
+    13:"excitement",
+    14:"fear",
+    15:"gratitude",
+    16:"grief",
+    17:"joy",
+    18:"love",
+    19:"nervousness",
+    20:"optimism",
+    21:"pride",
+    22:"realization",
+    23:"relief",
+    24:"remorse",
+    25:"sadness",
+    26:"surprise",
+    27:"neutral",
+}
 
 def ret_optimizer(model):
     '''
@@ -62,4 +93,7 @@ def log_metrics(preds, labels):
     fpr_micro, tpr_micro, _ = metrics.roc_curve(labels.ravel(), preds.ravel())
     
     auc_micro = metrics.auc(fpr_micro, tpr_micro)
-    return {"auc_micro": auc_micro}
+    discrete_preds = np.where(preds > 0.3, 1, 0)
+    label_names = list(mapping.values())
+    all_report = metrics.classification_report(labels.astype(int), discrete_preds, target_names=label_names)
+    return {"auc_micro": auc_micro, "all_report": all_report}
