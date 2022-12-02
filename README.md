@@ -11,3 +11,10 @@ pip install -r requirement.txt
 python train.py
 ```
 Checkout runtime visualizations in wandb links generated in training process.
+
+## Results 
+Visualized using [wandb](https://github.com/wandb/wandb)
+
+- goemo-baseline: https://wandb.ai/realzza/goemo-baseline
+- goemo-emoji-default-init: https://wandb.ai/realzza/goemo-emoji
+- goemo-emoji-[e2v](e2vDemo/emoji_torch.ipynb)-init: TODO
