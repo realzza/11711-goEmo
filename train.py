@@ -25,7 +25,6 @@ from utils import inspect_category_wise_data
 # import wandb
 
 
-
 def build_dataset(tokenizer_max_len):
     train_dataset = GoEmotionDataset(
         train.text.tolist(),
@@ -144,11 +143,16 @@ if __name__ == "__main__":
         "squeezebert/squeezebert-uncased", do_lower_case=True
     )
 
+    bert_model = transformers.SqueezeBertModel.from_pretrained(
+        "squeezebert/squeezebert-uncased"
+    )
+
     train, valid, test = (
         data["train"].to_pandas(),
         data["validation"].to_pandas(),
         data["test"].to_pandas(),
     )
+
     all_emojis = set()
     for phase in [train, valid, test]:
         for txt in tqdm(phase["text"]):
@@ -160,17 +164,19 @@ if __name__ == "__main__":
                         txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
                     )
 
-    all_emojis = list(emojis)
-    # import pdb; pdb.set_trace()
-    tokenizer.add_tokens(all_emojis)
-    print("all emojis added")
+    all_emojis = list(all_emojis)
+    num_added_tokens = tokenizer.add_tokens(all_emojis)
+    print("%d emojis added" % num_added_tokens)
+    bert_model.resize_token_embeddings(
+        len(tokenizer)
+    )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
 
     print(train.shape, valid.shape, test.shape)
 
     import wandb
 
     wandb.login()
-    sweep_id = wandb.sweep(sweep_config, project="goemo-emoji")
+    sweep_id = wandb.sweep(sweep_config, project="goemo-emoji-default-init")
     n_labels = len(mapping)
 
     train_ohe_labels = one_hot_encoder(train)
@@ -184,10 +190,6 @@ if __name__ == "__main__":
     sample_train_dataset, _ = build_dataset(40)
     # print(sample_train_dataset[0])
     len(sample_train_dataset)
-
-    bert_model = transformers.SqueezeBertModel.from_pretrained(
-        "squeezebert/squeezebert-uncased"
-    )
 
     print(sweep_id)
     wandb.agent(sweep_id, function=trainer, count=3)
