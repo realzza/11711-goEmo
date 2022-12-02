@@ -133,3 +133,15 @@ dmypy.json
 wandb/
 best_model.pt
 Multi-label Emotion Classification with Pytorch, transformers and W&B.ipynb
+
+# notebooks
+*.ipynb
+
+# other projects
+emojional
+goemotions
+Multi-label-Emotion-Classification
+models
+bert
+exp
+emoDatasets
