@@ -16,5 +16,5 @@ Checkout runtime visualizations in wandb links generated in training process.
 Visualized using [wandb](https://github.com/wandb/wandb)
 
 - goemo-baseline: https://wandb.ai/realzza/goemo-baseline
-- goemo-emoji-default-init: https://wandb.ai/realzza/goemo-emoji
+- goemo-emoji-default-init: https://wandb.ai/realzza/goemo-emoji-default-init
 - goemo-emoji-[e2v](e2vDemo/emoji_torch.ipynb)-init: TODO
