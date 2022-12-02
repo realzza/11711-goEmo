@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 from tqdm.notebook import tqdm
 
+import emoji
 from datasets import load_dataset
 import random
 from sklearn import metrics, model_selection, preprocessing
@@ -23,8 +24,6 @@ from emoDatasets import GoEmotionDataset
 from models import GoEmotionClassifier, ret_optimizer, ret_scheduler, loss_fn, log_metrics, train_fn, eval_fn
 
 
-
-tokenizer = transformers.SqueezeBertTokenizer.from_pretrained("squeezebert/squeezebert-uncased", do_lower_case=True)
 
 def build_dataset(tokenizer_max_len):
     train_dataset = GoEmotionDataset(train.text.tolist(), train[range(n_labels)].values.tolist(), tokenizer, tokenizer_max_len)
@@ -109,15 +108,29 @@ if __name__ == "__main__":
     
     go_emotions = load_dataset("go_emotions")
     data = go_emotions.data
+    tokenizer = transformers.SqueezeBertTokenizer.from_pretrained("squeezebert/squeezebert-uncased", do_lower_case=True)
     
     train, valid, test = data["train"].to_pandas(), data["validation"].to_pandas(), data["test"].to_pandas()
-    
+    all_emojis = set()
+    for phase in [train, valid, test]:
+        for txt in tqdm(phase['text']):
+            if emoji.emoji_count(txt) > 0:
+                # print(txt)
+                emojis = emoji.emoji_list(txt)
+                for emoji_pair in emojis:
+                    all_emojis.add(txt[emoji_pair['match_start']:emoji_pair['match_end']])
+                    
+    all_emojis = list(emojis)
+    # import pdb; pdb.set_trace()
+    tokenizer.add_tokens(all_emojis)
+    print("all emojis added")
+
     print(train.shape, valid.shape, test.shape) 
     
     import wandb
 
     wandb.login()
-    sweep_id = wandb.sweep(sweep_config, project='goemo_real')
+    sweep_id = wandb.sweep(sweep_config, project='goemo-emoji')
     n_labels = len(mapping)
     
     train_ohe_labels = one_hot_encoder(train)
@@ -135,4 +148,4 @@ if __name__ == "__main__":
     bert_model = transformers.SqueezeBertModel.from_pretrained("squeezebert/squeezebert-uncased")
     
     print(sweep_id)
-    wandb.agent(sweep_id, function=trainer, count=1)
+    wandb.agent(sweep_id, function=trainer, count=3)
