@@ -18,8 +18,16 @@ from tqdm import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup
 
 from emoDatasets import GoEmotionDataset
-from models import (GoEmotionClassifier, eval_fn, log_metrics, loss_fn,
-                    ret_optimizer, ret_scheduler, train_fn)
+from models import (
+    GoEmotionClassifier,
+    eval_fn,
+    log_metrics,
+    loss_fn,
+    ret_optimizer,
+    ret_scheduler,
+    train_fn,
+)
+
 # wandb.login()
 from train_config import mapping, sweep_config, sweep_defaults
 from utils import inspect_category_wise_data
@@ -148,7 +156,7 @@ def trainer(config=None):
 
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
-                torch.save(model.state_dict(), "./best_model.pt")
+                torch.save(model.state_dict(), os.path.join(exp_dir, "best_model.pt"))
                 print("Model saved as current val_loss is: ", best_val_loss)
 
 
@@ -157,6 +165,8 @@ if __name__ == "__main__":
     args = parse_args()
     os.makedirs(os.path.join(args.logdir, args.db), exist_ok=True)
     global sweep_logdir
+    global exp_dir
+    exp_dir = os.path.join(args.logdir, args.db)
     sweep_logdir = os.path.join(args.logdir, args.db, f"{args.db}.log")
     with open(sweep_logdir, "w") as f:
         f.write(
