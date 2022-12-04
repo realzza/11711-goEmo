@@ -1,0 +1,11 @@
+python3 train.py \
+  -d=data/training \
+  -w=data/word2vec/GoogleNews-vectors-negative300.bin \
+  -k=768 \
+  -b=4 \
+  -r=1 \
+  -dr=0.0 \
+  -l=0.001 \
+  -ds=unicode \
+  -t=0.5 \
+  -e=40
