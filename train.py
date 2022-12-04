@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 
@@ -23,7 +24,14 @@ from models import (GoEmotionClassifier, eval_fn, log_metrics, loss_fn,
 from train_config import mapping, sweep_config, sweep_defaults
 from utils import inspect_category_wise_data
 
-# import wandb
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="loading database information")
+    parser.add_argument("--db", type=str, required=True)
+    parser.add_argument("--emoji-rand-init", action="store_true")
+    parser.add_argument("--use-emoji", action="store_true")
+    parser.add_argument("--sweep-count", type=int, default=1)
+    return parser.parse_args()
 
 
 def build_dataset(tokenizer_max_len):
@@ -141,6 +149,8 @@ def trainer(config=None):
 
 if __name__ == "__main__":
 
+    args = parse_args()
+
     go_emotions = load_dataset("go_emotions")
     data = go_emotions.data
     tokenizer = transformers.SqueezeBertTokenizer.from_pretrained(
@@ -161,48 +171,57 @@ if __name__ == "__main__":
         data["test"].to_pandas(),
     )
 
-    all_emojis = set()
-    for phase in [train, valid, test]:
-        for txt in tqdm(phase["text"]):
-            if emoji.emoji_count(txt) > 0:
-                # print(txt)
-                emojis = emoji.emoji_list(txt)
-                for emoji_pair in emojis:
-                    all_emojis.add(
-                        txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
-                    )
+    if args.use_emoji:
+        all_emojis = set()
+        for phase in [train, valid, test]:
+            for txt in tqdm(phase["text"]):
+                if emoji.emoji_count(txt) > 0:
+                    # print(txt)
+                    emojis = emoji.emoji_list(txt)
+                    for emoji_pair in emojis:
+                        all_emojis.add(
+                            txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
+                        )
 
-    all_emojis = list(all_emojis)
-    error_emojis = []
-    health_emojis = []
-    for emoji in all_emojis:
-        try:
-            tmp_emoji = e2v[emoji[0]]
-            health_emojis.append(emoji[0])
-        except:
-            error_emojis.append(emoji[0])
+        all_emojis = list(all_emojis)
 
-    for i, emoji in enumerate(all_emojis):
-        emoji = emoji[0]
-        if emoji in health_emojis:
-            emoji_embd = torch.Tensor(e2v[emoji])
-            tokenizer.add_tokens(emoji)
-            bert_model.resize_token_embeddings(len(tokenizer))
-            with torch.no_grad():
-                bert_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
+        if args.emoji_rand_init:
+            num_added_tokens = tokenizer.add_tokens(all_emojis)
+            print("%d emojis added" % num_added_tokens)
+            bert_model.resize_token_embeddings(
+                len(tokenizer)
+            )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
         else:
+            error_emojis = []
+            health_emojis = []
+            for emoji in all_emojis:
+                try:
+                    tmp_emoji = e2v[emoji[0]]
+                    health_emojis.append(emoji[0])
+                except:
+                    error_emojis.append(emoji[0])
 
-            # import pdb; pdb.set_trace()
-            tokenizer.add_tokens(emoji)
-            bert_model.resize_token_embeddings(len(tokenizer))
-            print(i, emoji, len(tokenizer))
+            for i, emoji in enumerate(all_emojis):
+                emoji = emoji[0]
+                if emoji in health_emojis:
+                    emoji_embd = torch.Tensor(e2v[emoji])
+                    tokenizer.add_tokens(emoji)
+                    bert_model.resize_token_embeddings(len(tokenizer))
+                    with torch.no_grad():
+                        bert_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
+                else:
+
+                    # import pdb; pdb.set_trace()
+                    tokenizer.add_tokens(emoji)
+                    bert_model.resize_token_embeddings(len(tokenizer))
+                    print(i, emoji, len(tokenizer))
 
     print(train.shape, valid.shape, test.shape)
 
     import wandb
 
     wandb.login()
-    sweep_id = wandb.sweep(sweep_config, project="cpu-test")
+    sweep_id = wandb.sweep(sweep_config, project=args.db)
     n_labels = len(mapping)
 
     train_ohe_labels = one_hot_encoder(train)
@@ -218,4 +237,4 @@ if __name__ == "__main__":
     len(sample_train_dataset)
 
     print(sweep_id)
-    wandb.agent(sweep_id, function=trainer, count=1)
+    wandb.agent(sweep_id, function=trainer, count=args.sweep_count)
