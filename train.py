@@ -31,6 +31,7 @@ def parse_args():
     parser.add_argument("--emoji-rand-init", action="store_true")
     parser.add_argument("--use-emoji", action="store_true")
     parser.add_argument("--sweep-count", type=int, default=1)
+    parser.add_argument("--logdir", type=str, default="exp/")
     return parser.parse_args()
 
 
@@ -121,6 +122,10 @@ def trainer(config=None):
                 % (auc_score, macro_avg_precision, macro_avg_recall, macro_avg_f1)
             )
             print(all_report)
+            with open(sweep_logdir, "a") as f:
+                f.write(f"Epoch{epoch}")
+                f.write(all_report)
+                f.write("\n")
             avg_train_loss, avg_val_loss = train_loss / len(
                 train_data_loader
             ), eval_loss / len(valid_data_loader)
@@ -150,6 +155,14 @@ def trainer(config=None):
 if __name__ == "__main__":
 
     args = parse_args()
+    os.makedirs(os.path.join(args.logdir, args.db), exist_ok=True)
+    global sweep_logdir
+    sweep_logdir = os.path.join(args.logdir, args.db, f"{args.db}.log")
+    with open(sweep_logdir, "w") as f:
+        f.write(
+            "See log at \n%s"
+            % (f"https://wandb.ai/realzza/{args.db.replace('_','-')}\n")
+        )
 
     go_emotions = load_dataset("go_emotions")
     data = go_emotions.data
