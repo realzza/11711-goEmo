@@ -20,5 +20,6 @@ Visualized using [wandb](https://github.com/wandb/wandb)
 - goemo-emoji-[e2v](e2vDemo/emoji_torch.ipynb)-init: TODO
 
 ## Todo
-- [ ] add inference script for models
+- [ ] add inference script for models 
 - [ ] add sweep id for each run in wandb
+- [ ] add valid log for emoji2vec train (@tjysdsg)
