@@ -124,6 +124,9 @@ def trainer(config=None):
                     "macro_precision": macro_avg_precision,
                     "macro_recall": macro_avg_recall,
                     "macro_f1": macro_avg_f1,
+                    "batch_size": config.batch_size,
+                    "dropout": config.dropout,
+                    "lr": config.learning_rate,
                 }
             )
             print("Average Train loss: ", avg_train_loss)
@@ -165,18 +168,37 @@ if __name__ == "__main__":
                     )
 
     all_emojis = list(all_emojis)
-    num_added_tokens = tokenizer.add_tokens(all_emojis)
-    print("%d emojis added" % num_added_tokens)
-    bert_model.resize_token_embeddings(
-        len(tokenizer)
-    )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
+    # num_added_tokens = tokenizer.add_tokens(all_emojis)
+    # print("%d emojis added" % num_added_tokens)
+    # bert_model.resize_token_embeddings(
+    #     len(tokenizer)
+    # )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
+
+    for i, emoji in enumerate(all_emojis):
+        emoji = emoji[0]
+        if emoji in health_emojis:
+            emoji_embd = torch.Tensor(e2v[emoji])
+            tokenizer.add_tokens(emoji)
+            bert_model.resize_token_embeddings(
+                len(tokenizer)
+            )
+            with torch.no_grad():
+                bert_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
+        else:
+            
+            # import pdb; pdb.set_trace()
+            tokenizer.add_tokens(emoji)
+            bert_model.resize_token_embeddings(
+                len(tokenizer)
+            )
+            print(i, emoji, len(tokenizer))
 
     print(train.shape, valid.shape, test.shape)
 
     import wandb
 
     wandb.login()
-    sweep_id = wandb.sweep(sweep_config, project="goemo-emoji-default-init")
+    sweep_id = wandb.sweep(sweep_config, project="cpu-test")
     n_labels = len(mapping)
 
     train_ohe_labels = one_hot_encoder(train)
@@ -192,4 +214,4 @@ if __name__ == "__main__":
     len(sample_train_dataset)
 
     print(sweep_id)
-    wandb.agent(sweep_id, function=trainer, count=3)
+    wandb.agent(sweep_id, function=trainer, count=1)
