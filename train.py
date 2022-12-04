@@ -1,7 +1,9 @@
+import argparse
 import os
 import random
 
 import emoji
+import gensim
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,17 +14,33 @@ import transformers
 from datasets import load_dataset
 from sklearn import metrics, model_selection, preprocessing
 from torch.utils.data import DataLoader, Dataset
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup
 
 from emoDatasets import GoEmotionDataset
-from models import (GoEmotionClassifier, eval_fn, log_metrics, loss_fn,
-                    ret_optimizer, ret_scheduler, train_fn)
+from models import (
+    GoEmotionClassifier,
+    eval_fn,
+    log_metrics,
+    loss_fn,
+    ret_optimizer,
+    ret_scheduler,
+    train_fn,
+)
+
 # wandb.login()
 from train_config import mapping, sweep_config, sweep_defaults
 from utils import inspect_category_wise_data
 
-# import wandb
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="loading database information")
+    parser.add_argument("--db", type=str, required=True)
+    parser.add_argument("--emoji-rand-init", action="store_true")
+    parser.add_argument("--use-emoji", action="store_true")
+    parser.add_argument("--sweep-count", type=int, default=1)
+    parser.add_argument("--logdir", type=str, default="exp/")
+    return parser.parse_args()
 
 
 def build_dataset(tokenizer_max_len):
@@ -112,6 +130,10 @@ def trainer(config=None):
                 % (auc_score, macro_avg_precision, macro_avg_recall, macro_avg_f1)
             )
             print(all_report)
+            with open(sweep_logdir, "a") as f:
+                f.write(f"Epoch{epoch}")
+                f.write(all_report)
+                f.write("\n")
             avg_train_loss, avg_val_loss = train_loss / len(
                 train_data_loader
             ), eval_loss / len(valid_data_loader)
@@ -124,6 +146,9 @@ def trainer(config=None):
                     "macro_precision": macro_avg_precision,
                     "macro_recall": macro_avg_recall,
                     "macro_f1": macro_avg_f1,
+                    "batch_size": config.batch_size,
+                    "dropout": config.dropout,
+                    "lr": config.learning_rate,
                 }
             )
             print("Average Train loss: ", avg_train_loss)
@@ -131,11 +156,23 @@ def trainer(config=None):
 
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
-                torch.save(model.state_dict(), "./best_model.pt")
+                torch.save(model.state_dict(), os.path.join(exp_dir, "best_model.pt"))
                 print("Model saved as current val_loss is: ", best_val_loss)
 
 
 if __name__ == "__main__":
+
+    args = parse_args()
+    os.makedirs(os.path.join(args.logdir, args.db), exist_ok=True)
+    global sweep_logdir
+    global exp_dir
+    exp_dir = os.path.join(args.logdir, args.db)
+    sweep_logdir = os.path.join(args.logdir, args.db, f"{args.db}.log")
+    with open(sweep_logdir, "w") as f:
+        f.write(
+            "See log at \n%s"
+            % (f"https://wandb.ai/realzza/{args.db.replace('_','-')}\n")
+        )
 
     go_emotions = load_dataset("go_emotions")
     data = go_emotions.data
@@ -147,36 +184,67 @@ if __name__ == "__main__":
         "squeezebert/squeezebert-uncased"
     )
 
+    e2v = gensim.models.KeyedVectors.load_word2vec_format(
+        "e2vDemo/768-emoji2vec.bin", binary=True
+    )
+
     train, valid, test = (
         data["train"].to_pandas(),
         data["validation"].to_pandas(),
         data["test"].to_pandas(),
     )
 
-    all_emojis = set()
-    for phase in [train, valid, test]:
-        for txt in tqdm(phase["text"]):
-            if emoji.emoji_count(txt) > 0:
-                # print(txt)
-                emojis = emoji.emoji_list(txt)
-                for emoji_pair in emojis:
-                    all_emojis.add(
-                        txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
-                    )
+    if args.use_emoji:
+        all_emojis = set()
+        for phase in [train, valid, test]:
+            for txt in tqdm(phase["text"]):
+                if emoji.emoji_count(txt) > 0:
+                    # print(txt)
+                    emojis = emoji.emoji_list(txt)
+                    for emoji_pair in emojis:
+                        all_emojis.add(
+                            txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
+                        )
 
-    all_emojis = list(all_emojis)
-    num_added_tokens = tokenizer.add_tokens(all_emojis)
-    print("%d emojis added" % num_added_tokens)
-    bert_model.resize_token_embeddings(
-        len(tokenizer)
-    )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
+        all_emojis = list(all_emojis)
+
+        if args.emoji_rand_init:
+            num_added_tokens = tokenizer.add_tokens(all_emojis)
+            print("%d emojis added" % num_added_tokens)
+            bert_model.resize_token_embeddings(
+                len(tokenizer)
+            )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
+        else:
+            error_emojis = []
+            health_emojis = []
+            for emoji in all_emojis:
+                try:
+                    tmp_emoji = e2v[emoji[0]]
+                    health_emojis.append(emoji[0])
+                except:
+                    error_emojis.append(emoji[0])
+
+            for i, emoji in enumerate(all_emojis):
+                emoji = emoji[0]
+                if emoji in health_emojis:
+                    emoji_embd = torch.Tensor(e2v[emoji])
+                    tokenizer.add_tokens(emoji)
+                    bert_model.resize_token_embeddings(len(tokenizer))
+                    with torch.no_grad():
+                        bert_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
+                else:
+
+                    # import pdb; pdb.set_trace()
+                    tokenizer.add_tokens(emoji)
+                    bert_model.resize_token_embeddings(len(tokenizer))
+                    print(i, emoji, len(tokenizer))
 
     print(train.shape, valid.shape, test.shape)
 
     import wandb
 
     wandb.login()
-    sweep_id = wandb.sweep(sweep_config, project="goemo-emoji-default-init")
+    sweep_id = wandb.sweep(sweep_config, project=args.db)
     n_labels = len(mapping)
 
     train_ohe_labels = one_hot_encoder(train)
@@ -192,4 +260,4 @@ if __name__ == "__main__":
     len(sample_train_dataset)
 
     print(sweep_id)
-    wandb.agent(sweep_id, function=trainer, count=3)
+    wandb.agent(sweep_id, function=trainer, count=args.sweep_count)

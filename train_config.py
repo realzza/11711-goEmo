@@ -7,14 +7,18 @@ sweep_config = {
     'parameters': {
 
         'learning_rate': {
+            # 'values': [1e-5]
             'values': [5e-5, 3e-5]
         },
         'batch_size': {
+            # 'values': [32]
             'values': [32, 64]
         },
         'epochs':{'value': 10},
         'dropout':{
-            'values': [0.3, 0.4, 0.5]
+            # 'values': [0.3]
+            'values': [0.3, 0.5]
+            # 'values': [0.3, 0.4, 0.5]
         },
         'tokenizer_max_len': {'value': 40},
     }
