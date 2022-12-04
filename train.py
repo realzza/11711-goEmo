@@ -2,6 +2,7 @@ import os
 import random
 
 import emoji
+import gensim
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ import transformers
 from datasets import load_dataset
 from sklearn import metrics, model_selection, preprocessing
 from torch.utils.data import DataLoader, Dataset
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup
 
 from emoDatasets import GoEmotionDataset
@@ -150,6 +151,10 @@ if __name__ == "__main__":
         "squeezebert/squeezebert-uncased"
     )
 
+    e2v = gensim.models.KeyedVectors.load_word2vec_format(
+        "e2vDemo/768-emoji2vec.bin", binary=True
+    )
+
     train, valid, test = (
         data["train"].to_pandas(),
         data["validation"].to_pandas(),
@@ -168,29 +173,28 @@ if __name__ == "__main__":
                     )
 
     all_emojis = list(all_emojis)
-    # num_added_tokens = tokenizer.add_tokens(all_emojis)
-    # print("%d emojis added" % num_added_tokens)
-    # bert_model.resize_token_embeddings(
-    #     len(tokenizer)
-    # )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
+    error_emojis = []
+    health_emojis = []
+    for emoji in all_emojis:
+        try:
+            tmp_emoji = e2v[emoji[0]]
+            health_emojis.append(emoji[0])
+        except:
+            error_emojis.append(emoji[0])
 
     for i, emoji in enumerate(all_emojis):
         emoji = emoji[0]
         if emoji in health_emojis:
             emoji_embd = torch.Tensor(e2v[emoji])
             tokenizer.add_tokens(emoji)
-            bert_model.resize_token_embeddings(
-                len(tokenizer)
-            )
+            bert_model.resize_token_embeddings(len(tokenizer))
             with torch.no_grad():
                 bert_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
         else:
-            
+
             # import pdb; pdb.set_trace()
             tokenizer.add_tokens(emoji)
-            bert_model.resize_token_embeddings(
-                len(tokenizer)
-            )
+            bert_model.resize_token_embeddings(len(tokenizer))
             print(i, emoji, len(tokenizer))
 
     print(train.shape, valid.shape, test.shape)
