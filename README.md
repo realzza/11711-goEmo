@@ -29,3 +29,4 @@ Visualized using [wandb](https://github.com/wandb/wandb)
 - [ ] add inference script for models 
 - [ ] add sweep id for each run in wandb
 - [ ] add valid log for emoji2vec train (@tjysdsg)
+- [ ] add emoticon -> description (@tjysdsg)
