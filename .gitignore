@@ -147,3 +147,6 @@ models
 bert
 exp
 emoDatasets
+data
+e2vDemo/emoji2vec_pytorch
+emoji2vec/results/unicode/k-768_pos-4_rat-1_ep-40_dr-0/
