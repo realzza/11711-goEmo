@@ -15,19 +15,12 @@ from datasets import load_dataset
 from sklearn import metrics, model_selection, preprocessing
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
-from transformers import AdamW, get_linear_schedule_with_warmup
+from transformers import (AdamW, RobertaModel, RobertaTokenizer,
+                          get_linear_schedule_with_warmup)
 
 from emoDatasets import GoEmotionDataset
-from models import (
-    GoEmotionClassifier,
-    eval_fn,
-    log_metrics,
-    loss_fn,
-    ret_optimizer,
-    ret_scheduler,
-    train_fn,
-)
-
+from models import (GoEmotionClassifier, eval_fn, log_metrics, loss_fn,
+                    ret_optimizer, ret_scheduler, train_fn)
 # wandb.login()
 from train_config import mapping, sweep_config, sweep_defaults
 from utils import inspect_category_wise_data
@@ -40,6 +33,7 @@ def parse_args():
     parser.add_argument("--use-emoji", action="store_true")
     parser.add_argument("--sweep-count", type=int, default=1)
     parser.add_argument("--logdir", type=str, default="exp/")
+    parser.add_argument("--model-type", choices=["bert", "roberta"])
     return parser.parse_args()
 
 
@@ -176,13 +170,16 @@ if __name__ == "__main__":
 
     go_emotions = load_dataset("go_emotions")
     data = go_emotions.data
-    tokenizer = transformers.SqueezeBertTokenizer.from_pretrained(
-        "squeezebert/squeezebert-uncased", do_lower_case=True
-    )
+    if args.model_type == "bert":
+        model_name = "squeezebert/squeezebert-uncased"
+        tokenizer = transformers.SqueezeBertTokenizer.from_pretrained(
+            model_name, do_lower_case=True
+        )
 
-    bert_model = transformers.SqueezeBertModel.from_pretrained(
-        "squeezebert/squeezebert-uncased"
-    )
+        bert_model = transformers.SqueezeBertModel.from_pretrained(model_name)
+    if args.model_type == "roberta":
+        tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+        bert_model = RobertaModel.from_pretrained("roberta-base")
 
     e2v = gensim.models.KeyedVectors.load_word2vec_format(
         "e2vDemo/768-emoji2vec.bin", binary=True
