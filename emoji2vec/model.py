@@ -76,7 +76,7 @@ class Emoji2Vec:
             dropout=self.params.dropout,
         )
 
-    def train(self, kb, epochs, learning_rate):
+    def train(self, kb, epochs, learning_rate, end_of_epoch_callback=None):
         batcher = BatchNegSampler(
             kb=kb,
             arity=1,
@@ -115,9 +115,13 @@ class Emoji2Vec:
                 wandb.log(
                     dict(train_loss=loss.item(), train_acc=batch_acc.item(), train_f1=batch_f1)
                 )
+
+            # train metrics
             epoch_loss = np.round(np.mean(epoch_loss), 2)
             epoch_acc = np.round(np.mean(epoch_acc), 2)
             epoch_f1 = np.round(np.mean(epoch_f1), 2)
+
+            # log
             print(
                 str.format(
                     "Epoch: {} \n Training loss: {} \n Training acc: {} \n Training f1: {} \n ===================",
@@ -127,6 +131,10 @@ class Emoji2Vec:
                     epoch_f1,
                 )
             )
+
+            # validation
+            if end_of_epoch_callback is not None:
+                end_of_epoch_callback()
 
     def predict(self, dset, threshold):
         """Generate predictions on a given set of examples using TensorFlow

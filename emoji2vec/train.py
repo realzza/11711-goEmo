@@ -91,72 +91,58 @@ def train_save_evaluate(
     results = dict()
 
     from wandb_utils import init_wandb
+    os.makedirs(model_folder)
     init_wandb(model_folder)
 
-    if os.path.exists(model_path):
-        predictions = pk.load(open(model_folder + "/results.p", "rb"))
-
-    else:
-
-        model = Emoji2Vec(
-            model_params=params,
-            num_emojis=kb.dim_size(0),
-            embeddings_array=embeddings_array,
-        )
-        model.train(
-            kb=kb, epochs=params.max_epochs, learning_rate=params.learning_rate
-        )
-        os.makedirs(model_folder)
+    def end_of_epoch_validation_callback():
         torch.save(model.nn, model_folder + "/model.pt")
+
+        if params.in_dim != params.out_dim:
+            embd_array = model.nn.project_embeddings(embeddings_array)
+
         e2v = model.create_gensim_files(
             model_folder=model_folder,
             ind2emoj=ind2emoji,
             out_dim=params.out_dim,
         )
-        if params.in_dim != params.out_dim:
-            embeddings_array = model.nn.project_embeddings(embeddings_array)
-        for dset_name in dsets:
-            _, pred_values, _, true_values = generate_predictions(
-                e2v=e2v,
-                dset=dsets[dset_name],
-                phr_embeddings=embeddings_array,
-                ind2emoji=ind2emoji,
-                threshold=params.class_threshold,
-            )
-            predictions[dset_name] = {
-                "y_true": true_values,
-                "y_pred": pred_values,
-            }
+
+        data = dsets['dev']
+        _, pred_values, _, true_values = generate_predictions(
+            e2v=e2v,
+            dset=data,
+            phr_embeddings=embd_array,
+            ind2emoji=ind2emoji,
+            threshold=params.class_threshold,
+        )
 
         pk.dump(predictions, open(model_folder + "/results.p", "wb"))
 
-    for dset_name in dsets:
-        true_labels = [bool(x) for x in predictions[dset_name]["y_true"]]
+        true_labels = [bool(x) for x in true_values]
         pred_labels = [
-            x >= params.class_threshold
-            for x in predictions[dset_name]["y_pred"]
+            x >= params.class_threshold for x in pred_values
         ]
-        true_values = predictions[dset_name]["y_true"]
-        pred_values = predictions[dset_name]["y_pred"]
         # Calculate metrics
         acc, f1, auc = get_metrics(
             pred_labels, pred_values, true_labels, true_values
         )
         print(
-            str.format(
-                "{}: Accuracy(>{}): {}, f1: {}, auc: {}",
-                dset_name,
-                params.class_threshold,
-                acc,
-                f1,
-                auc,
-            )
+            f"Validation Accuracy(>{params.class_threshold}): {acc}, f1: {f1}, auc: {auc}"
+        )
+        wandb.log(
+            dict(val_acc=acc, val_f1=f1, val_auc=auc)
         )
 
-        wandb.log(
-            dict(val_f1=f1, val_auc=auc, val_acc=acc)
-        )
-        results[dset_name] = {"accuracy": acc, "f1": f1, "auc": auc}
+        results['dev'] = {"accuracy": acc, "f1": f1, "auc": auc}
+
+    model = Emoji2Vec(
+        model_params=params,
+        num_emojis=kb.dim_size(0),
+        embeddings_array=embeddings_array,
+    )
+    model.train(
+        kb=kb, epochs=params.max_epochs, learning_rate=params.learning_rate,
+        end_of_epoch_callback=end_of_epoch_validation_callback,
+    )
 
     return results["dev"]
 
