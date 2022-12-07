@@ -2,6 +2,8 @@
 import os
 import pickle as pk
 
+import wandb
+
 # Internal dependencies
 from parameter_parser import CliParser
 from model import Emoji2Vec
@@ -88,6 +90,9 @@ def train_save_evaluate(
     predictions = dict()
     results = dict()
 
+    from wandb_utils import init_wandb
+    init_wandb(model_folder)
+
     if os.path.exists(model_path):
         predictions = pk.load(open(model_folder + "/results.p", "rb"))
 
@@ -146,6 +151,10 @@ def train_save_evaluate(
                 f1,
                 auc,
             )
+        )
+
+        wandb.log(
+            dict(val_f1=f1, val_auc=auc, val_acc=acc)
         )
         results[dset_name] = {"accuracy": acc, "f1": f1, "auc": auc}
 

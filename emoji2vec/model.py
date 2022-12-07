@@ -1,4 +1,5 @@
 import torch
+import wandb
 from torch import optim, autograd
 import gensim.models as gsm
 from pytorch_network import Net
@@ -110,6 +111,10 @@ class Emoji2Vec:
                 epoch_f1.append(batch_f1)
                 loss.backward()
                 opt.step()
+
+                wandb.log(
+                    dict(train_loss=loss.item(), train_acc=batch_acc.item(), train_f1=batch_f1)
+                )
             epoch_loss = np.round(np.mean(epoch_loss), 2)
             epoch_acc = np.round(np.mean(epoch_acc), 2)
             epoch_f1 = np.round(np.mean(epoch_f1), 2)
