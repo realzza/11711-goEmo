@@ -7,6 +7,17 @@ pip install -r requirement.txt
 ```
 
 ## Train
+
+### Emoji2vec Training
+
+```bash
+cd emoji2vec
+./run.sh
+```
+
+Training and validation metrics on wandb: https://wandb.ai/tjysdsg/emoji2vec
+
+### Emotion Recognition Training
 ```
 python train.py
 ```

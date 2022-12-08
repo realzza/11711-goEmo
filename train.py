@@ -33,22 +33,28 @@ def parse_args():
     parser.add_argument("--use-emoji", action="store_true")
     parser.add_argument("--sweep-count", type=int, default=1)
     parser.add_argument("--logdir", type=str, default="exp/")
+<<<<<<< HEAD
     parser.add_argument("--model-type", choices=["bert", "roberta", "squeezebert"], default="bert")
+=======
+    parser.add_argument("--model-type", choices=["bert", "roberta"], default='bert')
+>>>>>>> e6b16814ae38996f19a4c42c19edd2ca78adfb9f
     return parser.parse_args()
 
 
-def build_dataset(tokenizer_max_len):
+def build_dataset(tokenizer_max_len, replace_emoticon):
     train_dataset = GoEmotionDataset(
         train.text.tolist(),
         train[range(n_labels)].values.tolist(),
         tokenizer,
         tokenizer_max_len,
+        replace_emoticon=replace_emoticon,
     )
     valid_dataset = GoEmotionDataset(
         valid.text.tolist(),
         valid[range(n_labels)].values.tolist(),
         tokenizer,
         tokenizer_max_len,
+        replace_emoticon=replace_emoticon,
     )
 
     return train_dataset, valid_dataset
@@ -85,7 +91,7 @@ def trainer(config=None):
     with wandb.init(config=config):
         config = wandb.config
 
-        train_dataset, valid_dataset = build_dataset(config.tokenizer_max_len)
+        train_dataset, valid_dataset = build_dataset(config.tokenizer_max_len, config.replace_emoticon)
         train_data_loader, valid_data_loader = build_dataloader(
             train_dataset, valid_dataset, config.batch_size
         )
@@ -165,7 +171,7 @@ if __name__ == "__main__":
     with open(sweep_logdir, "w") as f:
         f.write(
             "See log at \n%s"
-            % (f"https://wandb.ai/realzza/{args.db.replace('_','-')}\n")
+            % (f"https://wandb.ai/realzza/{args.db.replace('_', '-')}\n")
         )
 
     go_emotions = load_dataset("go_emotions")
@@ -209,7 +215,7 @@ if __name__ == "__main__":
                     emojis = emoji.emoji_list(txt)
                     for emoji_pair in emojis:
                         all_emojis.add(
-                            txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
+                            txt[emoji_pair["match_start"]: emoji_pair["match_end"]]
                         )
 
         all_emojis = list(all_emojis)
@@ -261,7 +267,7 @@ if __name__ == "__main__":
     valid = pd.concat([valid, valid_ohe_labels], axis=1)
     test = pd.concat([test, test_ohe_labels], axis=1)
 
-    sample_train_dataset, _ = build_dataset(40)
+    sample_train_dataset, _ = build_dataset(40, False)
     # print(sample_train_dataset[0])
     len(sample_train_dataset)
 
