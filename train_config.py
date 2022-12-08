@@ -13,11 +13,11 @@ sweep_config = {
         "epochs": {"value": 10},
         "dropout": {
             # 'values': [0.5]
-            'values': [0.3, 0.5]
+            "values": [0.3, 0.5]
             # "values": [0.3, 0.4, 0.5]
         },
         "tokenizer_max_len": {"value": 40},
-        "replace_emoticon": {"value": false},
+        "replace_emoticon": {"value": False},
     },
 }
 
@@ -59,4 +59,19 @@ mapping = {
     25: "sadness",
     26: "surprise",
     27: "neutral",
+}
+
+ekman_mapping = {
+    0: "anger",
+    1: "disgust",
+    2: "fear",
+    3: "joy",
+    4: "sadness",
+    5: "surprise",
+}
+
+sentiment_mapping = {
+    0: "positive",
+    1: "negative",
+    2: "neutral",
 }
