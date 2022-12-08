@@ -17,7 +17,7 @@ sweep_config = {
             # "values": [0.3, 0.4, 0.5]
         },
         "tokenizer_max_len": {"value": 40},
-        "replace_emoticon": {"value": True},
+        "replace_emoticon": {"value": false},
     },
 }
 
