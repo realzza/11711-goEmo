@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument("--use-emoji", action="store_true")
     parser.add_argument("--sweep-count", type=int, default=1)
     parser.add_argument("--logdir", type=str, default="exp/")
-    parser.add_argument("--model-type", choices=["bert", "roberta"])
+    parser.add_argument("--model-type", choices=["bert", "roberta", "squeezebert"], default="bert")
     return parser.parse_args()
 
 
@@ -66,7 +66,7 @@ def build_dataloader(train_dataset, valid_dataset, batch_size):
 
 
 def ret_model(n_train_steps, do_prob):
-    model = GoEmotionClassifier(n_train_steps, n_labels, do_prob, bert_model=bert_model)
+    model = GoEmotionClassifier(n_train_steps, n_labels, do_prob, bert_model=my_model)
     return model
 
 
@@ -170,16 +170,25 @@ if __name__ == "__main__":
 
     go_emotions = load_dataset("go_emotions")
     data = go_emotions.data
-    if args.model_type == "bert":
+    if args.model_type == "squeezebert":
         model_name = "squeezebert/squeezebert-uncased"
         tokenizer = transformers.SqueezeBertTokenizer.from_pretrained(
             model_name, do_lower_case=True
         )
 
-        bert_model = transformers.SqueezeBertModel.from_pretrained(model_name)
+        my_model = transformers.SqueezeBertModel.from_pretrained(model_name)
+        
+    if args.model_type == "bert":
+        model_name = 'bert-base-cased'
+        tokenizer = transformers.BertTokenizer.from_pretrained(
+            model_name
+        )
+
+        my_model = transformers.BertModel.from_pretrained(model_name)
+
     if args.model_type == "roberta":
         tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-        bert_model = RobertaModel.from_pretrained("roberta-base")
+        my_model = RobertaModel.from_pretrained("roberta-base")
 
     e2v = gensim.models.KeyedVectors.load_word2vec_format(
         "e2vDemo/768-emoji2vec.bin", binary=True
@@ -208,7 +217,7 @@ if __name__ == "__main__":
         if args.emoji_rand_init:
             num_added_tokens = tokenizer.add_tokens(all_emojis)
             print("%d emojis added" % num_added_tokens)
-            bert_model.resize_token_embeddings(
+            my_model.resize_token_embeddings(
                 len(tokenizer)
             )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
         else:
@@ -226,14 +235,14 @@ if __name__ == "__main__":
                 if emoji in health_emojis:
                     emoji_embd = torch.Tensor(e2v[emoji])
                     tokenizer.add_tokens(emoji)
-                    bert_model.resize_token_embeddings(len(tokenizer))
+                    my_model.resize_token_embeddings(len(tokenizer))
                     with torch.no_grad():
-                        bert_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
+                        my_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
                 else:
 
                     # import pdb; pdb.set_trace()
                     tokenizer.add_tokens(emoji)
-                    bert_model.resize_token_embeddings(len(tokenizer))
+                    my_model.resize_token_embeddings(len(tokenizer))
                     print(i, emoji, len(tokenizer))
 
     print(train.shape, valid.shape, test.shape)
