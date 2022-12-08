@@ -1,15 +1,17 @@
 import torch
 from typing import List
 
+
 class GoEmotionDataset:
-    def __init__(self, texts, labels, tokenizer, max_len):
+    def __init__(self, texts, labels, tokenizer, max_len, replace_emoticon=False):
         self.texts = texts
         self.labels = labels
 
         self.tokenizer = tokenizer
         self.max_len = max_len
 
-        self.texts = self.clean_emoticons(self.texts, self.tokenizer.sep_token)
+        if replace_emoticon:
+            self.texts = self.clean_emoticons(self.texts, self.tokenizer.sep_token)
 
     def clean_emoticons(self, texts: List[str], sep_token: str):
         import emot

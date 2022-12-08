@@ -37,18 +37,20 @@ def parse_args():
     return parser.parse_args()
 
 
-def build_dataset(tokenizer_max_len):
+def build_dataset(tokenizer_max_len, replace_emoticon):
     train_dataset = GoEmotionDataset(
         train.text.tolist(),
         train[range(n_labels)].values.tolist(),
         tokenizer,
         tokenizer_max_len,
+        replace_emoticon=replace_emoticon,
     )
     valid_dataset = GoEmotionDataset(
         valid.text.tolist(),
         valid[range(n_labels)].values.tolist(),
         tokenizer,
         tokenizer_max_len,
+        replace_emoticon=replace_emoticon,
     )
 
     return train_dataset, valid_dataset
@@ -85,7 +87,7 @@ def trainer(config=None):
     with wandb.init(config=config):
         config = wandb.config
 
-        train_dataset, valid_dataset = build_dataset(config.tokenizer_max_len)
+        train_dataset, valid_dataset = build_dataset(config.tokenizer_max_len, config.replace_emoticon)
         train_data_loader, valid_data_loader = build_dataloader(
             train_dataset, valid_dataset, config.batch_size
         )
@@ -252,7 +254,7 @@ if __name__ == "__main__":
     valid = pd.concat([valid, valid_ohe_labels], axis=1)
     test = pd.concat([test, test_ohe_labels], axis=1)
 
-    sample_train_dataset, _ = build_dataset(40)
+    sample_train_dataset, _ = build_dataset(40, False)
     # print(sample_train_dataset[0])
     len(sample_train_dataset)
 
