@@ -13,8 +13,8 @@ sweep_config = {
         "epochs": {"value": 10},
         "dropout": {
             # 'values': [0.5]
-            # 'values': [0.3, 0.5]
-            "values": [0.3, 0.4, 0.5]
+            'values': [0.3, 0.5]
+            # "values": [0.3, 0.4, 0.5]
         },
         "tokenizer_max_len": {"value": 40},
     },
