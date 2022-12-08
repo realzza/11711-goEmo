@@ -61,6 +61,77 @@ mapping = {
     27: "neutral",
 }
 
+ekman_ = {
+    "anger": ["anger", "annoyance", "disapproval"],
+    "disgust": ["disgust"],
+    "fear": ["fear", "nervousness"],
+    "joy": [
+        "joy",
+        "amusement",
+        "approval",
+        "excitement",
+        "gratitude",
+        "love",
+        "optimism",
+        "relief",
+        "pride",
+        "admiration",
+        "desire",
+        "caring",
+    ],
+    "sadness": ["sadness", "disappointment", "embarrassment", "grief", "remorse"],
+    "surprise": ["surprise", "realization", "confusion", "curiosity"],
+}
+
+senti_ = {
+    "positive": [
+        "amusement",
+        "excitement",
+        "joy",
+        "love",
+        "desire",
+        "optimism",
+        "caring",
+        "pride",
+        "admiration",
+        "gratitude",
+        "relief",
+        "approval",
+    ],
+    "negative": [
+        "fear",
+        "nervousness",
+        "remorse",
+        "embarrassment",
+        "disappointment",
+        "sadness",
+        "grief",
+        "disgust",
+        "anger",
+        "annoyance",
+        "disapproval",
+    ],
+    "ambiguous": ["realization", "surprise", "curiosity", "confusion"],
+}
+
+taxon2ekman = {}
+
+for emoId in mapping:
+    ekid = 0
+    for ekemo in ekman_:
+        if mapping[emoId] in ekman_[ekemo]:
+            taxon2ekman[emoId] = ekid
+        ekid += 1
+
+taxon2senti = {}
+
+for emoId in mapping:
+    sentid = 0
+    for sentiemo in senti_:
+        if mapping[emoId] in senti_[sentiemo]:
+            taxon2senti[emoId] = sentid
+        sentid += 1
+
 ekman_mapping = {
     0: "anger",
     1: "disgust",
@@ -73,5 +144,5 @@ ekman_mapping = {
 sentiment_mapping = {
     0: "positive",
     1: "negative",
-    2: "neutral",
+    2: "ambiguous",
 }

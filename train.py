@@ -21,8 +21,9 @@ from transformers import (AdamW, RobertaModel, RobertaTokenizer,
 from emoDatasets import GoEmotionDataset
 from models import (GoEmotionClassifier, eval_fn, log_metrics, loss_fn,
                     ret_optimizer, ret_scheduler, train_fn)
-# wandb.login()
-from train_config import mapping, sweep_config, sweep_defaults
+from train_config import (ekman_mapping, mapping, sentiment_mapping,
+                          sweep_config, sweep_defaults, taxon2ekman,
+                          taxon2senti)
 from utils import inspect_category_wise_data
 
 
@@ -33,7 +34,12 @@ def parse_args():
     parser.add_argument("--use-emoji", action="store_true")
     parser.add_argument("--sweep-count", type=int, default=1)
     parser.add_argument("--logdir", type=str, default="exp/")
-    parser.add_argument("--model-type", choices=["bert", "roberta", "squeezebert"], default="bert")
+    parser.add_argument(
+        "--model-type", choices=["bert", "roberta", "squeezebert"], default="bert"
+    )
+    parser.add_argument(
+        "--task", choices=["taxon", "ekman", "sentiment"], default="taxon"
+    )
     return parser.parse_args()
 
 
@@ -72,13 +78,14 @@ def ret_model(n_train_steps, do_prob):
     return model
 
 
-def one_hot_encoder(df):
+def one_hot_encoder(df, task_filter):
     one_hot_encoding = []
     for i in tqdm(range(len(df))):
         temp = [0] * n_labels
         label_indices = df.iloc[i]["labels"]
         for index in label_indices:
-            temp[index] = 1
+            if not index == 27:
+                temp[task_filter[index]] = 1
         one_hot_encoding.append(temp)
     return pd.DataFrame(one_hot_encoding)
 
@@ -87,7 +94,9 @@ def trainer(config=None):
     with wandb.init(config=config):
         config = wandb.config
 
-        train_dataset, valid_dataset = build_dataset(config.tokenizer_max_len, config.replace_emoticon)
+        train_dataset, valid_dataset = build_dataset(
+            config.tokenizer_max_len, config.replace_emoticon
+        )
         train_data_loader, valid_data_loader = build_dataloader(
             train_dataset, valid_dataset, config.batch_size
         )
@@ -115,7 +124,7 @@ def trainer(config=None):
             eval_loss, preds, labels = eval_fn(valid_data_loader, model, device)
 
             # import pdb; pdb.set_trace()
-            all_scores = log_metrics(preds, labels)
+            all_scores = log_metrics(preds, labels, args.task)
             auc_score = all_scores["auc_micro"]
             all_report = all_scores["all_report"]
             macro_avg_precision, macro_avg_recall, macro_avg_f1 = map(
@@ -179,12 +188,10 @@ if __name__ == "__main__":
         )
 
         my_model = transformers.SqueezeBertModel.from_pretrained(model_name)
-        
+
     if args.model_type == "bert":
-        model_name = 'bert-base-cased'
-        tokenizer = transformers.BertTokenizer.from_pretrained(
-            model_name
-        )
+        model_name = "bert-base-cased"
+        tokenizer = transformers.BertTokenizer.from_pretrained(model_name)
 
         my_model = transformers.BertModel.from_pretrained(model_name)
 
@@ -207,11 +214,10 @@ if __name__ == "__main__":
         for phase in [train, valid, test]:
             for txt in tqdm(phase["text"]):
                 if emoji.emoji_count(txt) > 0:
-                    # print(txt)
                     emojis = emoji.emoji_list(txt)
                     for emoji_pair in emojis:
                         all_emojis.add(
-                            txt[emoji_pair["match_start"]: emoji_pair["match_end"]]
+                            txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
                         )
 
         all_emojis = list(all_emojis)
@@ -242,7 +248,6 @@ if __name__ == "__main__":
                         my_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
                 else:
 
-                    # import pdb; pdb.set_trace()
                     tokenizer.add_tokens(emoji)
                     my_model.resize_token_embeddings(len(tokenizer))
                     print(i, emoji, len(tokenizer))
@@ -253,18 +258,26 @@ if __name__ == "__main__":
 
     wandb.login()
     sweep_id = wandb.sweep(sweep_config, project=args.db)
-    n_labels = len(mapping)
 
-    train_ohe_labels = one_hot_encoder(train)
-    valid_ohe_labels = one_hot_encoder(valid)
-    test_ohe_labels = one_hot_encoder(test)
+    if args.task == "taxon":
+        task_filter = {i: i for i in range(28)}
+    elif args.task == "ekman":
+        task_filter = taxon2ekman
+        mapping = ekman_mapping
+    elif args.task == "sentiment":
+        task_filter = taxon2senti
+        mapping = sentiment_mapping
+
+    n_labels = len(mapping)
+    train_ohe_labels = one_hot_encoder(train, task_filter)
+    valid_ohe_labels = one_hot_encoder(valid, task_filter)
+    test_ohe_labels = one_hot_encoder(test, task_filter)
 
     train = pd.concat([train, train_ohe_labels], axis=1)
     valid = pd.concat([valid, valid_ohe_labels], axis=1)
     test = pd.concat([test, test_ohe_labels], axis=1)
 
     sample_train_dataset, _ = build_dataset(40, False)
-    # print(sample_train_dataset[0])
     len(sample_train_dataset)
 
     print(sweep_id)
