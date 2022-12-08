@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument("--use-emoji", action="store_true")
     parser.add_argument("--sweep-count", type=int, default=1)
     parser.add_argument("--logdir", type=str, default="exp/")
-    parser.add_argument("--model-type", choices=["bert", "roberta"])
+    parser.add_argument("--model-type", choices=["bert", "roberta"], default='bert')
     return parser.parse_args()
 
 
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     with open(sweep_logdir, "w") as f:
         f.write(
             "See log at \n%s"
-            % (f"https://wandb.ai/realzza/{args.db.replace('_','-')}\n")
+            % (f"https://wandb.ai/realzza/{args.db.replace('_', '-')}\n")
         )
 
     go_emotions = load_dataset("go_emotions")
@@ -200,7 +200,7 @@ if __name__ == "__main__":
                     emojis = emoji.emoji_list(txt)
                     for emoji_pair in emojis:
                         all_emojis.add(
-                            txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
+                            txt[emoji_pair["match_start"]: emoji_pair["match_end"]]
                         )
 
         all_emojis = list(all_emojis)
