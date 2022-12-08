@@ -33,11 +33,7 @@ def parse_args():
     parser.add_argument("--use-emoji", action="store_true")
     parser.add_argument("--sweep-count", type=int, default=1)
     parser.add_argument("--logdir", type=str, default="exp/")
-<<<<<<< HEAD
     parser.add_argument("--model-type", choices=["bert", "roberta", "squeezebert"], default="bert")
-=======
-    parser.add_argument("--model-type", choices=["bert", "roberta"], default='bert')
->>>>>>> e6b16814ae38996f19a4c42c19edd2ca78adfb9f
     return parser.parse_args()
 
 
