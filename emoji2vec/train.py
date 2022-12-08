@@ -91,7 +91,7 @@ def train_save_evaluate(
     results = dict()
 
     from wandb_utils import init_wandb
-    os.makedirs(model_folder)
+    os.makedirs(model_folder, exist_ok=True)
     init_wandb(model_folder)
 
     def end_of_epoch_validation_callback():
