@@ -8,7 +8,7 @@ from transformers import get_linear_schedule_with_warmup
 
 import wandb
 
-mapping = {
+taxon_mapping = {
     0: "admiration",
     1: "amusement",
     2: "anger",
@@ -116,7 +116,7 @@ def log_metrics(preds, labels, task="taxon"):
     auc_micro = metrics.auc(fpr_micro, tpr_micro)
     discrete_preds = np.where(preds > 0.3, 1, 0)
     if task == "taxon":
-        mapping = mapping
+        mapping = taxon_mapping
     elif task == "ekman":
         mapping = ekman_mapping
     elif task == "sentiment":
