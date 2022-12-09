@@ -2,7 +2,7 @@ import argparse
 import os
 import random
 
-import emoji
+import emoji as emotk
 import gensim
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,6 +33,11 @@ def parse_args():
     parser.add_argument("--emoji-rand-init", action="store_true")
     parser.add_argument("--use-emoji", action="store_true")
     parser.add_argument("--sweep-count", type=int, default=1)
+    parser.add_argument(
+        "--text-align",
+        action="store_true",
+        help="using alternative text of emojis, which aligns with the textual feature space",
+    )
     parser.add_argument("--logdir", type=str, default="exp/")
     parser.add_argument(
         "--model-type", choices=["bert", "roberta", "squeezebert"], default="bert"
@@ -41,6 +46,16 @@ def parse_args():
         "--task", choices=["taxon", "ekman", "sentiment"], default="taxon"
     )
     return parser.parse_args()
+
+
+def tokenize_and_embedize(emo, md, tk):
+    emoji_text = emotk.demojize(emo)
+    new_str = emoji_text.strip(":").replace("_", " ")
+    str_embedding = md.embeddings.word_embeddings(
+        torch.Tensor(tk.encode(new_str)).int()
+    )[1:-1]
+    avg_embedding = torch.mean(str_embedding, dim=0)
+    return avg_embedding
 
 
 def build_dataset(tokenizer_max_len, replace_emoticon):
@@ -213,8 +228,8 @@ if __name__ == "__main__":
         all_emojis = set()
         for phase in [train, valid, test]:
             for txt in tqdm(phase["text"]):
-                if emoji.emoji_count(txt) > 0:
-                    emojis = emoji.emoji_list(txt)
+                if emotk.emoji_count(txt) > 0:
+                    emojis = emotk.emoji_list(txt)
                     for emoji_pair in emojis:
                         all_emojis.add(
                             txt[emoji_pair["match_start"] : emoji_pair["match_end"]]
@@ -229,34 +244,47 @@ if __name__ == "__main__":
                 len(tokenizer)
             )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
         else:
-            error_emojis = []
-            health_emojis = []
-            for emoji in all_emojis:
-                try:
-                    tmp_emoji = e2v[emoji[0]]
-                    health_emojis.append(emoji[0])
-                except:
-                    error_emojis.append(emoji[0])
-
-            for i, emoji in enumerate(all_emojis):
-                emoji = emoji[0]
-                if emoji in health_emojis:
-                    emoji_embd = torch.Tensor(e2v[emoji])
-                    tokenizer.add_tokens(emoji)
+            if args.text_align:
+                for emoji in all_emojis:
+                    emoji_embd = tokenize_and_embedize(emoji)
+                    okenizer.add_tokens(emoji)
                     my_model.resize_token_embeddings(len(tokenizer))
                     with torch.no_grad():
                         my_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
-                else:
 
-                    tokenizer.add_tokens(emoji)
-                    my_model.resize_token_embeddings(len(tokenizer))
-                    print(i, emoji, len(tokenizer))
+            else:
+                error_emojis = []
+                health_emojis = []
+                for emoji in all_emojis:
+                    try:
+                        tmp_emoji = e2v[emoji[0]]
+                        health_emojis.append(emoji[0])
+                    except:
+                        error_emojis.append(emoji[0])
+
+                for i, emoji in enumerate(all_emojis):
+                    emoji = emoji[0]
+                    if emoji in health_emojis:
+                        emoji_embd = torch.Tensor(e2v[emoji])
+                        tokenizer.add_tokens(emoji)
+                        my_model.resize_token_embeddings(len(tokenizer))
+                        with torch.no_grad():
+                            my_model.embeddings.word_embeddings.weight[
+                                -1, :
+                            ] = emoji_embd
+                    else:
+
+                        tokenizer.add_tokens(emoji)
+                        my_model.resize_token_embeddings(len(tokenizer))
+                        print(i, emoji, len(tokenizer))
 
     print(train.shape, valid.shape, test.shape)
 
     import wandb
 
     wandb.login()
+    if args.task == "ekman" or args.task == "sentiment":
+        sweep_config["parameters"]["learning_rate"]["values"] = [1e-5, 5e-6]
     sweep_id = wandb.sweep(sweep_config, project=args.db)
 
     if args.task == "taxon":

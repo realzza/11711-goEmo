@@ -4,6 +4,7 @@ sweep_config = {
     "parameters": {
         "learning_rate": {
             # 'values': [3e-5]
+            # default value for taxon, will adapt ekman and sentiment in train.py
             "values": [5e-5, 3e-5]
         },
         "batch_size": {
