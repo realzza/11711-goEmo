@@ -1,58 +1,33 @@
-# GOEMOTION TAXONOMY
-python test.py \
-  --db=bert-baseline-test \
-  --checkpoint=final_out/bert-cased-baseline/best_model.pt \
-  --model-type=bert || exit 1
+exp_dir=/ocean/projects/cis210027p/zzhou5/code/11711-goEmo/final_idea
 
-python test.py \
-  --db=bert-emoji2vec-test \
-  --use-emoji \
-  --checkpoint=final_out/bert-cased-emoji2vec/best_model.pt \
-  --model-type=bert || exit 1
+for split in test valid; do
+  # GOEMOTION TAXONOMY
+  python test.py \
+    --split=${split} \
+    --db=bert-baseline-${split} \
+    --checkpoint=${exp_dir}/final-bert-baseline/best_model.pt \
+    --model-type=bert || exit 1
 
-python test.py \
-  --db=roberta-test \
-  --checkpoint=final_out/roberta-baseline/best_model.pt \
-  --model-type=roberta || exit 1
+  python test.py \
+    --split=${split} \
+    --db=bert-emoji2vec-${split} \
+    --use-emoji \
+    --checkpoint=${exp_dir}/final-bert-emoji2vec/best_model.pt \
+    --model-type=bert || exit 1
 
-# TODO
-#  python test.py \
-#    --db=roberta-emoji2vec-test \
-#    --use-emoji \
-#    --checkpoint=final_out/roberta-emoji2vec/best_model.pt \
-#    --model-type=roberta || exit 1
+  # EKMAN
+  python test.py \
+    --db=bert-ekman-${split} \
+    --split=${split} \
+    --task=ekman \
+    --checkpoint=${exp_dir}/final-bert-ekman-base/best_model.pt \
+    --model-type=bert || exit 1
 
-# TODO
-#  python test.py \
-#    --db=bert-emoji-rand-test \
-#    --use-emoji \
-#    --emoji-rand-init \
-#    --checkpoint=final_out/bert-cased-emoji-rand/best_model.pt \
-#    --model-type=bert || exit 1
-
-# EKMAN
-python test.py \
-  --db=bert-ekman-test \
-  --task=ekman \
-  --checkpoint=final_out/bert-ekman/best_model.pt \
-  --model-type=bert || exit 1
-
-python test.py \
-  --db=bert-ekman-emoji2vec-test \
-  --task=ekman \
-  --use-emoji \
-  --checkpoint=final_out/bert-ekman-emoji2vec/best_model.pt \
-  --model-type=bert || exit 1
-
-python test.py \
-  --db=roberta-ekman-test \
-  --task=ekman \
-  --checkpoint=final_out/roberta-ekman/best_model.pt \
-  --model-type=roberta || exit 1
-
-python test.py \
-  --db=roberta-ekman-emoji2vec-test \
-  --task=ekman \
-  --use-emoji \
-  --checkpoint=final_out/roberta-ekman-emoji2vec/best_model.pt \
-  --model-type=roberta || exit 1
+  python test.py \
+    --split=${split} \
+    --db=bert-ekman-emoji2vec-${split} \
+    --task=ekman \
+    --use-emoji \
+    --checkpoint=${exp_dir}/final-bert-ekman-emoji2vec/best_model.pt \
+    --model-type=bert || exit 1
+done

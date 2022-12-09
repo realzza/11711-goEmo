@@ -20,6 +20,7 @@ from sklearn import metrics
 def parse_args():
     parser = argparse.ArgumentParser(description="loading database information")
     parser.add_argument("--checkpoint", type=str, required=True)
+    parser.add_argument("--split", type=str, default='test')
     parser.add_argument("--db", type=str, required=True)
     parser.add_argument("--emoji-rand-init", action="store_true")
     parser.add_argument("--use-emoji", action="store_true")
@@ -215,6 +216,9 @@ if __name__ == "__main__":
         mapping = sentiment_mapping
 
     n_labels = len(mapping)
+    if args.split == 'val':
+        test = valid
+
     test_ohe_labels = one_hot_encoder(test, task_filter)
 
     test = pd.concat([test, test_ohe_labels], axis=1)
