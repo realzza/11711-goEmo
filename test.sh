@@ -1,14 +1,14 @@
-# GOEMOTION TAXONOMY
-python test.py \
-  --db=bert-baseline-test \
-  --checkpoint=final_out/bert-cased-baseline/best_model.pt \
-  --model-type=bert || exit 1
-
-python test.py \
-  --db=bert-emoji2vec-test \
-  --use-emoji \
-  --checkpoint=final_out/bert-cased-emoji2vec/best_model.pt \
-  --model-type=bert || exit 1
+# # GOEMOTION TAXONOMY
+# python test.py \
+#   --db=bert-baseline-test \
+#   --checkpoint=final_out/bert-cased-baseline/best_model.pt \
+#   --model-type=bert || exit 1
+#
+# python test.py \
+#   --db=bert-emoji2vec-test \
+#   --use-emoji \
+#   --checkpoint=final_out/bert-cased-emoji2vec/best_model.pt \
+#   --model-type=bert || exit 1
 
 python test.py \
   --db=roberta-test \
@@ -31,18 +31,18 @@ python test.py \
 #    --model-type=bert || exit 1
 
 # EKMAN
-python test.py \
-  --db=bert-ekman-test \
-  --task=ekman \
-  --checkpoint=final_out/bert-ekman/best_model.pt \
-  --model-type=bert || exit 1
-
-python test.py \
-  --db=bert-ekman-emoji2vec-test \
-  --task=ekman \
-  --use-emoji \
-  --checkpoint=final_out/bert-ekman-emoji2vec/best_model.pt \
-  --model-type=bert || exit 1
+# python test.py \
+#   --db=bert-ekman-test \
+#   --task=ekman \
+#   --checkpoint=final_out/bert-ekman/best_model.pt \
+#   --model-type=bert || exit 1
+#
+# python test.py \
+#   --db=bert-ekman-emoji2vec-test \
+#   --task=ekman \
+#   --use-emoji \
+#   --checkpoint=final_out/bert-ekman-emoji2vec/best_model.pt \
+#   --model-type=bert || exit 1
 
 python test.py \
   --db=roberta-ekman-test \

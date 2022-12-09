@@ -83,7 +83,10 @@ def inference_and_test(config):
 
     sentences, preds, labels = inference(model, device, dataloader)
     sentences = test_dataset.tokenizer.batch_decode(sentences)
-    sentences = [s.replace('[CLS]', '').replace('[SEP]', '').replace('[PAD]', '') for s in sentences]
+    sentences = [
+        s.replace('[CLS]', '').replace('[SEP]', '').replace('[PAD]', '').replace('<s>', '').replace('</s>', '')
+        .replace('<pad>', '') for s in sentences
+    ]
 
     preds = torch.stack(preds)
     preds = preds.cpu().detach().numpy()
