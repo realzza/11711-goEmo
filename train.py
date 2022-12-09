@@ -246,8 +246,8 @@ if __name__ == "__main__":
         else:
             if args.text_align:
                 for emoji in all_emojis:
-                    emoji_embd = tokenize_and_embedize(emoji)
-                    okenizer.add_tokens(emoji)
+                    emoji_embd = tokenize_and_embedize(emoji, my_model, tokenizer)
+                    tokenizer.add_tokens(emoji)
                     my_model.resize_token_embeddings(len(tokenizer))
                     with torch.no_grad():
                         my_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
@@ -284,8 +284,10 @@ if __name__ == "__main__":
 
     wandb.login()
     if args.task == "ekman" or args.task == "sentiment":
-        sweep_config["parameters"]["learning_rate"]["values"] = [1e-5, 5e-6]
+        sweep_config["parameters"]["learning_rate"]["values"] = [4e-6, 2e-6]
     sweep_id = wandb.sweep(sweep_config, project=args.db)
+
+    # import pdb; pdb.set_trace()
 
     if args.task == "taxon":
         task_filter = {i: i for i in range(28)}
