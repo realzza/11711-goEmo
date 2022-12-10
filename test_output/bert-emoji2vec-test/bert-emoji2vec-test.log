@@ -1,14 +1,14 @@
                 precision    recall  f1-score   support
 
     admiration       0.63      0.67      0.65       504
-     amusement       0.77      0.87      0.82       264
+     amusement       0.77      0.88      0.82       264
          anger       0.49      0.49      0.49       198
-     annoyance       0.31      0.38      0.35       320
-      approval       0.43      0.28      0.34       351
-        caring       0.47      0.30      0.37       135
+     annoyance       0.31      0.39      0.35       320
+      approval       0.42      0.28      0.34       351
+        caring       0.45      0.30      0.36       135
      confusion       0.39      0.40      0.39       153
      curiosity       0.46      0.48      0.47       284
-        desire       0.66      0.30      0.41        83
+        desire       0.67      0.31      0.43        83
 disappointment       0.34      0.22      0.27       151
    disapproval       0.36      0.34      0.35       267
        disgust       0.56      0.40      0.46       123
@@ -17,14 +17,14 @@ disappointment       0.34      0.22      0.27       151
           fear       0.69      0.60      0.64        78
      gratitude       0.91      0.91      0.91       352
          grief       0.00      0.00      0.00         6
-           joy       0.62      0.55      0.59       161
+           joy       0.63      0.55      0.58       161
           love       0.78      0.74      0.76       238
    nervousness       0.00      0.00      0.00        23
-      optimism       0.64      0.46      0.53       186
+      optimism       0.63      0.46      0.53       186
          pride       0.00      0.00      0.00        16
    realization       0.25      0.17      0.20       145
         relief       0.00      0.00      0.00        11
-       remorse       0.58      0.70      0.63        56
+       remorse       0.59      0.70      0.64        56
        sadness       0.63      0.46      0.53       156
       surprise       0.51      0.49      0.50       141
        neutral       0.00      0.00      0.00         0

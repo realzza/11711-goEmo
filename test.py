@@ -1,7 +1,7 @@
 import argparse
 import os
 import numpy as np
-import emoji
+import emoji as emotk
 import gensim
 import pandas as pd
 import torch
@@ -15,6 +15,7 @@ from emoDatasets import GoEmotionDataset
 from models import GoEmotionClassifier, log_metrics
 from train_config import (ekman_mapping, mapping, sentiment_mapping, taxon2ekman, taxon2senti)
 from sklearn import metrics
+from train import tokenize_and_embedize
 
 
 def parse_args():
@@ -31,6 +32,11 @@ def parse_args():
     parser.add_argument(
         "--task", choices=["taxon", "ekman", "sentiment"], default="taxon"
     )
+    parser.add_argument(
+        "--text-align",
+        action="store_true",
+        help="using alternative text of emojis, which aligns with the textual feature space",
+    )
     return parser.parse_args()
 
 
@@ -40,8 +46,7 @@ def one_hot_encoder(df, task_filter):
         temp = [0] * n_labels
         label_indices = df.iloc[i]["labels"]
         for index in label_indices:
-            if not index == 27:
-                temp[task_filter[index]] = 1
+            temp[task_filter[index]] = 1
         one_hot_encoding.append(temp)
     return pd.DataFrame(one_hot_encoding)
 
@@ -69,10 +74,10 @@ def inference(model, device, dataloader):
     return token_ids, preds, labels
 
 
-def inference_and_test(config):
+def inference_and_test(config, inference_data):
     test_dataset = GoEmotionDataset(
-        test.text.tolist(),
-        test[range(n_labels)].values.tolist(),
+        inference_data.text.tolist(),
+        inference_data[range(n_labels)].values.tolist(),
         tokenizer,
         config['tokenizer_max_len'],
         replace_emoticon=False,
@@ -165,8 +170,8 @@ if __name__ == "__main__":
         all_emojis = set()
         for phase in [train, valid, test]:
             for txt in tqdm(phase["text"]):
-                if emoji.emoji_count(txt) > 0:
-                    emojis = emoji.emoji_list(txt)
+                if emotk.emoji_count(txt) > 0:
+                    emojis = emotk.emoji_list(txt)
                     for emoji_pair in emojis:
                         all_emojis.add(
                             txt[emoji_pair["match_start"]: emoji_pair["match_end"]]
@@ -181,28 +186,37 @@ if __name__ == "__main__":
                 len(tokenizer)
             )  # https://huggingface.co/docs/transformers/internal/tokenization_utils?highlight=add_token#transformers.SpecialTokensMixin.add_tokens
         else:
-            error_emojis = []
-            health_emojis = []
-            for emoji in all_emojis:
-                try:
-                    tmp_emoji = e2v[emoji[0]]
-                    health_emojis.append(emoji[0])
-                except:
-                    error_emojis.append(emoji[0])
-
-            for i, emoji in enumerate(all_emojis):
-                emoji = emoji[0]
-                if emoji in health_emojis:
-                    emoji_embd = torch.Tensor(e2v[emoji])
+            if args.text_align:
+                for emoji in all_emojis:
+                    emoji_embd = tokenize_and_embedize(emoji, my_model, tokenizer)
                     tokenizer.add_tokens(emoji)
                     my_model.resize_token_embeddings(len(tokenizer))
                     with torch.no_grad():
                         my_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
-                else:
 
-                    tokenizer.add_tokens(emoji)
-                    my_model.resize_token_embeddings(len(tokenizer))
-                    print(i, emoji, len(tokenizer))
+            else:
+                error_emojis = []
+                health_emojis = []
+                for emoji in all_emojis:
+                    try:
+                        tmp_emoji = e2v[emoji[0]]
+                        health_emojis.append(emoji[0])
+                    except:
+                        error_emojis.append(emoji[0])
+
+                for i, emoji in enumerate(all_emojis):
+                    emoji = emoji[0]
+                    if emoji in health_emojis:
+                        emoji_embd = torch.Tensor(e2v[emoji])
+                        tokenizer.add_tokens(emoji)
+                        my_model.resize_token_embeddings(len(tokenizer))
+                        with torch.no_grad():
+                            my_model.embeddings.word_embeddings.weight[-1, :] = emoji_embd
+                    else:
+
+                        tokenizer.add_tokens(emoji)
+                        my_model.resize_token_embeddings(len(tokenizer))
+                        print(i, emoji, len(tokenizer))
 
     print(test.shape)
 
@@ -216,12 +230,15 @@ if __name__ == "__main__":
         mapping = sentiment_mapping
 
     n_labels = len(mapping)
-    if args.split == 'val':
-        test = valid
+    if 'test' in args.split:
+        inference_data = test
+    elif 'valid' in args.split:
+        inference_data = valid
+    else:
+        raise RuntimeError(f"Invalid option: --split={args.split}")
 
-    test_ohe_labels = one_hot_encoder(test, task_filter)
-
-    test = pd.concat([test, test_ohe_labels], axis=1)
+    test_ohe_labels = one_hot_encoder(inference_data, task_filter)
+    inference_data = pd.concat([inference_data, test_ohe_labels], axis=1)
 
     # load checkpoint
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -235,5 +252,6 @@ if __name__ == "__main__":
         dict(
             batch_size=64,
             tokenizer_max_len=40,
-        )
+        ),
+        inference_data,
     )
