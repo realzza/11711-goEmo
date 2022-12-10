@@ -5,14 +5,14 @@ for split in test valid; do
   python test.py \
     --split=${split} \
     --db=bert-baseline-${split} \
-    --checkpoint=${exp_dir}/final-bert-baseline/best_model.pt \
+    --checkpoint=${exp_dir}/final-bert-baseline-fix/best_model.pt \
     --model-type=bert || exit 1
 
   python test.py \
     --split=${split} \
     --db=bert-emoji2vec-${split} \
     --use-emoji \
-    --checkpoint=${exp_dir}/final-bert-emoji2vec/best_model.pt \
+    --checkpoint=${exp_dir}/final-bert-emoji2vec-fix/best_model.pt \
     --model-type=bert || exit 1
 
   python test.py \
@@ -20,7 +20,7 @@ for split in test valid; do
     --db=bert-emoji-text-align-${split} \
     --use-emoji \
     --text-align \
-    --checkpoint=${exp_dir}/final-bert-emoji-text-align/best_model.pt \
+    --checkpoint=${exp_dir}/final-bert-emoji-text-align-fix/best_model.pt \
     --model-type=bert || exit 1
 
   # EKMAN
