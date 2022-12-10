@@ -99,8 +99,8 @@ def one_hot_encoder(df, task_filter):
         temp = [0] * n_labels
         label_indices = df.iloc[i]["labels"]
         for index in label_indices:
-            if not index == 27:
-                temp[task_filter[index]] = 1
+            # if not index == 27:
+            temp[task_filter[index]] = 1
         one_hot_encoding.append(temp)
     return pd.DataFrame(one_hot_encoding)
 
